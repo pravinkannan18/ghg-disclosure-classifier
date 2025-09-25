@@ -1,0 +1,9 @@
+playwright
+PyPDF2
+requests
+beautifulsoup4
+pdfplumber  # For robust PDF text extraction (better than PyPDF2 for tables/images)
+pandas
+scikit-learn  # For ML (TF-IDF, Logistic Regression)
+transformers  # Optional for BERT
+torch  # If using transformers
