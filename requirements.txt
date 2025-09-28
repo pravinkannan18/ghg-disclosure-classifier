@@ -7,3 +7,5 @@ pandas
 scikit-learn  # For ML (TF-IDF, Logistic Regression)
 transformers  # Optional for BERT
 torch  # If using transformers
+imblearn
+joblib

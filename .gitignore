@@ -1,4 +1,6 @@
+__pycache__
+*.log
+*.pkl
 data/
 venv/
-*.pyc
-__pycache__
+validation.csv
