@@ -135,7 +135,6 @@ The best performing model achieves:
 - **transformers**: BERT model implementation
 - **pandas**: Data manipulation and analysis
 - **pdfplumber**: Robust PDF text extraction
-- **playwright**: Web automation for scraping
 - **imblearn**: Handling imbalanced datasets
 
 ### Logging and Monitoring
@@ -161,11 +160,6 @@ The automatic labeling system uses sophisticated heuristics:
 - Heuristic labeling captures majority of relevant cases
 - Company diversity spans major exchanges and industries
 
-### Limitations
-- Web scraping dependent on site structure stability
-- Manual validation recommended for production deployment
-- Model performance varies with document formatting quality
-- Limited to English-language annual reports
 
 ## 🤝 Contributing
 
@@ -177,16 +171,9 @@ The automatic labeling system uses sophisticated heuristics:
 
 
 
-## 🙏 Acknowledgments
-
-- **Impactree**: For providing the project framework and requirements
-- **annualreports.com**: Data source for corporate annual reports
-- **Hugging Face**: Transformer models and tokenizers
-- **scikit-learn**: Comprehensive machine learning toolkit
-
 ## 📧 Contact
 
-**Pravin K** - [pravinkannan18](https://github.com/pravinkannan18)
+**Pravin K** - [Email](pravinkannan18@gmail.com)
 
 Project Link: [https://github.com/pravinkannan18/ghg-disclosure-classifier](https://github.com/pravinkannan18/ghg-disclosure-classifier)
 
