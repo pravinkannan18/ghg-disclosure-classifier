@@ -19,26 +19,15 @@ import os
 import json
 import argparse
 
-# -----------------------------
-# Logging
-# -----------------------------
-logging.basicConfig(
-    filename="../logs/training.log",
-    level=logging.INFO,
-    format="%(asctime)s - %(levelname)s - %(message)s"
-)
+logging.basicConfig(filename="../logs/training.log", level=logging.INFO,
+                    format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
 
-# -----------------------------
-# CLI Args
-# -----------------------------
 parser = argparse.ArgumentParser(description="Train and evaluate GHG disclosure classifier.")
 parser.add_argument('--validation', type=str, required=True, help="Path to the validation CSV file.")
 args = parser.parse_args()
 
-# -----------------------------
-# Load datasets
-# -----------------------------
+
 TRAIN_DATASET_PATH = "../data/dataset.csv"
 try:
     df_train = pd.read_csv(TRAIN_DATASET_PATH)
@@ -73,9 +62,7 @@ except ValueError as e:
 
 y_train = df_train['label'].values
 
-# -----------------------------
-# Preprocessing
-# -----------------------------
+
 def preprocess_text(text):
     text = re.sub(r'\s+', ' ', str(text).lower().strip())
     text = re.sub(r'[^\w\s]', '', text)
@@ -84,16 +71,12 @@ def preprocess_text(text):
 df_train['text_excerpt'] = df_train['text_excerpt'].apply(preprocess_text)
 df_val['text_excerpt'] = df_val['text_excerpt'].apply(preprocess_text)
 
-# -----------------------------
-# TF-IDF features
-# -----------------------------
+
 tfidf_vectorizer = TfidfVectorizer(max_features=600, stop_words='english', ngram_range=(1, 2))
 X_train_tfidf = tfidf_vectorizer.fit_transform(df_train['text_excerpt'])
 X_val_tfidf = tfidf_vectorizer.transform(df_val['text_excerpt'])
 
-# -----------------------------
-# DistilBERT embeddings with PCA
-# -----------------------------
+
 def get_bert_embeddings(texts, batch_size=8):
     tokenizer = DistilBertTokenizer.from_pretrained('distilbert-base-uncased')
     model = DistilBertModel.from_pretrained('distilbert-base-uncased')
@@ -113,13 +96,11 @@ X_train_bert = get_bert_embeddings(df_train['text_excerpt'].tolist())
 X_val_bert = get_bert_embeddings(df_val['text_excerpt'].tolist())
 logger.info(f"Generated BERT embeddings: Train shape {X_train_bert.shape}, Val shape {X_val_bert.shape}")
 
-pca = PCA(n_components=15)  # Increased to 15
+pca = PCA(n_components=15) 
 X_train_bert_res_pca = pca.fit_transform(X_train_bert)
 X_val_bert_res_pca = pca.transform(X_val_bert)
 
-# -----------------------------
-# Handle class imbalance
-# -----------------------------
+
 X_train_bert_res = X_train_bert_res_pca
 smote = SMOTE(sampling_strategy='auto', k_neighbors=2, random_state=42)
 rus = RandomUnderSampler(random_state=42)
@@ -127,9 +108,7 @@ X_train_tfidf_res, y_train_res = smote.fit_resample(X_train_tfidf, y_train)
 X_train_bert_res, y_train_res = rus.fit_resample(X_train_bert_res, y_train_res)
 logger.info(f"Post-resampling training size: {len(y_train_res)}, distribution: {pd.Series(y_train_res).value_counts().to_dict()}")
 
-# -----------------------------
-# Hyperparameter Tuning for Traditional Models
-# -----------------------------
+
 param_grid_lr = {'C': [0.1, 0.5, 1.0]}
 param_grid_svm = {'C': [0.1, 0.5, 1.0]}
 
@@ -139,7 +118,7 @@ svm = GridSearchCV(SVC(kernel='linear', random_state=42, probability=True, class
 models = {
     'Logistic Regression': lr,
     'SVM': svm,
-    'DistilBERT': None  # Will be fine-tuned separately
+    'DistilBERT': None  
 }
 
 results = {}
@@ -168,11 +147,9 @@ for name, model in models.items():
 
         results[name] = {'y_val': y_val, 'y_pred_val': y_pred_val}
 
-# -----------------------------
-# Fine-Tuning DistilBERT
-# -----------------------------
+
 class DistilBERTClassifier(nn.Module):
-    def __init__(self, input_dim=15, hidden_dim=64, output_dim=2):  # Updated to match PCA=15
+    def __init__(self, input_dim=15, hidden_dim=64, output_dim=2):  
         super(DistilBERTClassifier, self).__init__()
         self.layer = nn.Sequential(
             nn.Linear(input_dim, hidden_dim),
@@ -189,19 +166,19 @@ model = DistilBERTClassifier().to(device)
 criterion = nn.CrossEntropyLoss()
 optimizer = torch.optim.Adam(model.parameters(), lr=1e-5, weight_decay=1e-4)
 
-# Prepare data for fine-tuning
+
 X_train_bert_tensor = torch.FloatTensor(X_train_bert_res).to(device)
 y_train_tensor = torch.LongTensor(y_train_res).to(device)
 train_dataset = TensorDataset(X_train_bert_tensor, y_train_tensor)
 train_loader = DataLoader(train_dataset, batch_size=16, shuffle=True)
 
-# Validation data for early stopping
+
 X_val_bert_tensor = torch.FloatTensor(X_val_bert_res_pca).to(device)
 y_val_tensor = torch.LongTensor(y_val).to(device)
 val_dataset = TensorDataset(X_val_bert_tensor, y_val_tensor)
 val_loader = DataLoader(val_dataset, batch_size=16)
 
-# Fine-tuning loop with early stopping
+
 model.train()
 best_val_loss = float('inf')
 patience = 3
@@ -219,7 +196,7 @@ for epoch in range(num_epochs):
         optimizer.step()
         train_loss += loss.item()
 
-    # Validation
+
     model.eval()
     val_loss = 0
     with torch.no_grad():
@@ -240,7 +217,7 @@ for epoch in range(num_epochs):
             print(f"Early stopping at epoch {epoch+1}")
             break
 
-# Load best model and predict
+
 model.load_state_dict(torch.load(f"../models/best_model_DistilBERT.pth"))
 model.eval()
 with torch.no_grad():
@@ -255,9 +232,7 @@ logger.info(f"DistilBERT Validation Report: {classification_report(y_val, y_pred
 logger.info(f"DistilBERT Validation Confusion Matrix: {confusion_matrix(y_val, y_pred_val)}")
 results['DistilBERT'] = {'y_val': y_val, 'y_pred_val': y_pred_val}
 
-# -----------------------------
-# Save best model
-# -----------------------------
+
 best_model_name = max(
     results,
     key=lambda k: classification_report(results[k]['y_val'], results[k]['y_pred_val'], output_dict=True, zero_division=0)['macro avg']['f1-score']
@@ -269,28 +244,24 @@ if best_model_name != 'DistilBERT':
 else:
     logger.info(f"Saved best model: {best_model_name}")
 
-# -----------------------------
-# Compute final metrics
-# -----------------------------
+
 best_preds = results[best_model_name]['y_pred_val']
 accuracy = accuracy_score(y_val, best_preds)
 precision = precision_score(y_val, best_preds, average="macro", zero_division=0)
 recall = recall_score(y_val, best_preds, average="macro", zero_division=0)
 f1 = f1_score(y_val, best_preds, average="macro", zero_division=0)
 
-# -----------------------------
-# JSON output (required format)
-# -----------------------------
-files_used = len(df_train)  # Changed to total rows instead of unique files
+
+files_used = len(df_train) 
 exchanges = df_train['exchange'].dropna().unique().tolist()
 
 output = {
     "files_used_for_training": files_used,
     "exchanges_in_dataset": exchanges,
-    "accuracy": round(accuracy, 2),
-    "precision": round(precision, 2),
-    "recall": round(recall, 2),
-    "f1": round(f1, 2)
+    "accuracy": round(accuracy, 3),
+    "precision": round(precision, 3),
+    "recall": round(recall, 3),
+    "f1": round(f1, 3)
 }
 
 print(json.dumps(output))

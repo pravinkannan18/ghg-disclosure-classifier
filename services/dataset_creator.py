@@ -3,12 +3,12 @@ import re
 import pandas as pd
 import logging
 
-# Configuration
+
 OUTPUT_TEXT_DIR = "../data/text"
 DATASET_PATH = "../data/dataset.csv"
 MIN_ENTRIES = 50
 
-# Set up logging
+
 logging.basicConfig(filename="../logs/dataset_creation.log", level=logging.INFO,
                     format="%(asctime)s - %(levelname)s - %(message)s")
 
@@ -104,9 +104,8 @@ def create_dataset():
 
     if dataset:
         df = pd.DataFrame(dataset)
-        # Create a balanced subset (half of total entries, or cap at reasonable size)
         total_entries = len(df)
-        target_size = min(total_entries // 2, 168)  # Half of 336 or cap at 168
+        target_size = min(total_entries // 2, 168)  
         label_0 = df[df["label"] == 0].sample(n=target_size, replace=False if len(df[df["label"] == 0]) >= target_size else True)
         label_1 = df[df["label"] == 1].sample(n=target_size, replace=True if len(df[df["label"] == 1]) < target_size else False)
         balanced_df = pd.concat([label_0, label_1]).sample(frac=1).reset_index(drop=True)

@@ -25,7 +25,7 @@ def scrape_report_links():
     
     industries = ["energy", "technology", "manufacturing", "finance", "automotive", "food", "healthcare", "retail"]
     for industry in industries:
-        for page in range(1, 6):  # Increased to 6 pages per industry
+        for page in range(1, 6):  
             url = f"{BASE_URL}/company-directory/industry/{industry}?page={page}"
             print(f"Scraping: {url}")
             try:
@@ -58,12 +58,11 @@ def download_pdfs(links, headers):
         try:
             pdf_response = requests.get(link, headers=headers, timeout=10)
             pdf_response.raise_for_status()
-            # Extract original filename from URL
             filename_match = re.search(r"/([^/]+\.pdf)$", link)
             if filename_match:
                 pdf_filename = filename_match.group(1)
             else:
-                pdf_filename = f"report_{hash(link)}.pdf"  # Fallback with hash if no match
+                pdf_filename = f"report_{hash(link)}.pdf"  
             pdf_path = os.path.join(OUTPUT_PDF_DIR, pdf_filename)
             with open(pdf_path, "wb") as f:
                 f.write(pdf_response.content)

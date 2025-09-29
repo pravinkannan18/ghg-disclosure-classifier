@@ -177,6 +177,4 @@ The automatic labeling system uses sophisticated heuristics:
 
 Project Link: [https://github.com/pravinkannan18/ghg-disclosure-classifier](https://github.com/pravinkannan18/ghg-disclosure-classifier)
 
----
 
-*Building sustainable AI solutions for corporate transparency and environmental accountability* 🌍
