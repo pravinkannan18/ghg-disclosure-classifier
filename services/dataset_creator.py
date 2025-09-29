@@ -4,12 +4,12 @@ import pandas as pd
 import logging
 
 # Configuration
-OUTPUT_TEXT_DIR = "data/text"
-DATASET_PATH = "data/dataset.csv"
-MIN_ENTRIES = 250
+OUTPUT_TEXT_DIR = "../data/text"
+DATASET_PATH = "../data/dataset.csv"
+MIN_ENTRIES = 50
 
 # Set up logging
-logging.basicConfig(filename="dataset_creation.log", level=logging.INFO,
+logging.basicConfig(filename="../logs/dataset_creation.log", level=logging.INFO,
                     format="%(asctime)s - %(levelname)s - %(message)s")
 
 def extract_metadata(filename):
